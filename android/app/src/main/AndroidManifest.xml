@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/> -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
 
     <application
       android:name=".MainApplication"
@@ -11,6 +11,10 @@
       android:allowBackup="false"
       android:theme="@style/AppTheme"
       android:supportsRtl="true">
+      <service
+        android:name=".SystemOverlayService"
+        android:permission="android.permission.SYSTEM_ALERT_WINDOW">
+      </service>
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"

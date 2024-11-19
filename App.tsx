@@ -28,6 +28,7 @@ import {
 
 import { Client } from '@notionhq/client';
 import NotionForm from './pages/home/_components/Form';
+import { PermissionsAndroid } from 'react-native';
 
 // import {NOTION_API_KEY} from '@env';
 
@@ -175,6 +176,23 @@ function Section({ children, title }: SectionProps): React.JSX.Element {
   );
 }
 
+const checkOverlayPermission = async () => {
+  if (Platform.OS === 'android') {
+    try {
+      const isGranted = await NativeModules.SystemOverlayModule.isOverlayPermissionGranted();
+      console.log('Overlay Permission Granted:', isGranted);
+      return isGranted;
+    } catch (error) {
+      console.error('Failed to check overlay permission:', error);
+      return false;
+    }
+  } else {
+    console.warn('Overlay permission is not required on iOS');
+    return false;
+  }
+};
+
+
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -182,26 +200,19 @@ function App(): React.JSX.Element {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  const startSystemOverlay = () => {
-    // Direct call to native module
-    // NativeModules.FloatingButton.showFloatingButton();
-  };
-
   useEffect(() => {
 
-      const requestOverlayPermission = async () => {
-        if (Platform.OS === 'android') {
-          try {
-            await Linking.openSettings();
-            // User needs to manually enable "Draw over other apps"
-            startSystemOverlay();
-          } catch (error) {
-            console.error(error);
-          }
-        }
-      };
-      requestOverlayPermission()
-  })
+    checkOverlayPermission().then(async (granted) => {
+      if (!granted) {
+        console.log('Overlay permission not granted. Prompting user to enable it.');
+        Linking.openSettings();
+      }else{
+        console.log("permission is granted")
+        await NativeModules.SystemOverlayModule.startOverlayService();
+      }
+    });
+
+  }, [])
 
   return (
     <SafeAreaView>
