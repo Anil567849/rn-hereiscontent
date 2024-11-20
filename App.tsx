@@ -158,8 +158,9 @@ const checkOverlayPermission = async () => {
   }
 };
 
-const handleFormSubmission = (formData: string) => {
-  console.log('Received from Kotlin:', formData);
+const handleFormSubmission = (formData: any) => {
+  const parsedData = JSON.parse(formData);
+  console.log('Received Data:', parsedData);
 };
 
 function App(): React.JSX.Element {

@@ -10,10 +10,20 @@ import android.view.View
 import android.view.WindowManager
 import android.util.Log
 import android.widget.Button
+import android.widget.Spinner
 import android.widget.Toast
 import android.widget.EditText
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.Callback
+import android.widget.ArrayAdapter
+import android.widget.AdapterView
+
+data class SubmittedData(
+    val inputTitle: String,
+    val inputUrl: String,
+    val inputCategory: String,
+    val inputDescription: String,
+    val selectedPlatform: String
+)
 
 class SystemOverlayService : Service() {
     private var overlayButton: View? = null
@@ -21,7 +31,6 @@ class SystemOverlayService : Service() {
 
     companion object {
         var reactContext: ReactApplicationContext? = null
-        var cb: Callback? = null;
     }
 
     override fun onCreate() {
@@ -88,19 +97,51 @@ class SystemOverlayService : Service() {
         windowManager.addView(formView, formParams)
 
         // Get references to form fields
-        val editText = formView.findViewById<EditText>(R.id.enterText)
-        val submitButton = formView.findViewById<Button>(R.id.submitButton)
+        val input_title = formView.findViewById<EditText>(R.id.input_title)
+        val input_url = formView.findViewById<EditText>(R.id.input_url)
+        val input_category = formView.findViewById<EditText>(R.id.input_category)
+        val input_description = formView.findViewById<EditText>(R.id.input_description)
+        val platform_spinner = formView.findViewById<Spinner>(R.id.platform_spinner)
+
+        // Define the options to display in the Spinner
+        val platforms = arrayOf("YouTube", "Instagram", "LinkedIn", "Facebook", "X", "TikTok", "Reddit")
+
+        // Create an ArrayAdapter using the string array and a default spinner layout
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, platforms)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+        // Set the adapter to the Spinner
+        platform_spinner.adapter = adapter
+        var selectedPlatform: String = ""
+
+        platform_spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parentView: AdapterView<*>, view: View?, position: Int, id: Long) {
+                selectedPlatform = parentView.getItemAtPosition(position).toString()
+                Log.d("Selected Platform", selectedPlatform) // Log the selected platform to check the value
+            }
+        
+            override fun onNothingSelected(parentView: AdapterView<*>) {
+                // Handle the case when nothing is selected, if needed
+                selectedPlatform = ""  // or some default value, if required
+            }
+        }
+
+        val submitButton = formView.findViewById<Button>(R.id.submit_button)
 
         // Handle form submission
         submitButton.setOnClickListener {
-            val enteredText = editText.text.toString()
-            if (enteredText.isNotEmpty()) {
+            val inputTitle = input_title.text.toString();
+            val inputUrl = input_url.text.toString();
+            val inputCategory = input_category.text.toString();
+            val inputDescription = input_description.text.toString();
+            
+            if (inputTitle.isNotEmpty()) {
                 // Save the data to Notion (you can integrate this step later)
-                Toast.makeText(applicationContext, "Data submitted: $enteredText", Toast.   LENGTH_SHORT).show()
-                
+                Toast.makeText(applicationContext, "Data submitted: $inputTitle", Toast.   LENGTH_SHORT).show()
+
                 reactContext?.let { context ->
                     val systemOverlayModule = SystemOverlayModule(context)
-                    systemOverlayModule.sendDataToReactNative("onFormSubmit", enteredText)
+                    systemOverlayModule.sendDataToReactNative("onFormSubmit", inputTitle, inputUrl, inputCategory, inputDescription, selectedPlatform)
                 }
 
                 windowManager.removeView(formView)  // Remove the form after submission

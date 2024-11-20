@@ -10,6 +10,7 @@ import com.facebook.react.bridge.ReactMethod
 import android.util.Log
 import com.facebook.react.bridge.Callback
 import com.facebook.react.modules.core.DeviceEventManagerModule
+import com.google.gson.Gson
 
 class SystemOverlayModule(private val reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -49,11 +50,15 @@ class SystemOverlayModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun sendDataToReactNative(eventName: String, params: String) {
-        Log.d("Debug", "Send to React Native: $params")
+    fun sendDataToReactNative(eventName: String, inputTitle: String, inputUrl: String, inputCategory: String, inputDescription: String, selectedPlatform: String) {
+        val submittedData = SubmittedData(inputTitle, inputUrl, inputCategory, inputDescription, selectedPlatform)
+
+        val gson = Gson()
+        val jsonData = gson.toJson(submittedData)
+
         reactContext
         .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-        .emit(eventName, params)
+        .emit(eventName, jsonData)
     }
 
 }
