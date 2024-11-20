@@ -158,9 +158,63 @@ const checkOverlayPermission = async () => {
   }
 };
 
-const handleFormSubmission = (formData: any) => {
-  const parsedData = JSON.parse(formData);
-  console.log('Received Data:', parsedData);
+const handleFormSubmission = async (data: any) => {
+  const formData = JSON.parse(data);
+  console.log('Received Data:', formData);
+
+  try {
+    const response = await notion.pages.create({
+      parent: {
+        database_id: '141ecc71627e80b5a472d0200ee150e9',
+      },
+      properties: {
+        Title: {
+          title: [
+            {
+              text: {
+                content: formData.inputTitle,
+              },
+            },
+          ],
+        },
+        URL: {
+          url: formData.inputUrl,
+        },
+        Category: {
+          rich_text: [
+            {
+              text: {
+                content: formData.inputCategory,
+              },
+            },
+          ],
+        },
+        Description: {
+          rich_text: [
+            {
+              text: {
+                content: formData.inputDescription,
+              },
+            },
+          ],
+        },
+        Platform: {
+          rich_text: [
+            {
+              text: {
+                content: formData.selectedPlatform,
+              },
+            },
+          ],
+        },
+      },
+    });
+    console.log('Success! Entry added:', response);
+  //   alert('Data submitted successfully!');
+  } catch (error) {
+    console.error('Error:', error);
+  //   alert('Error submitting data. Please try again.');
+  }
 };
 
 function App(): React.JSX.Element {
@@ -200,7 +254,7 @@ function App(): React.JSX.Element {
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
-      <NotionForm />
+      {/* <NotionForm /> */}
     </SafeAreaView>
   );
 }
