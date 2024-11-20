@@ -11,15 +11,27 @@ import android.view.WindowManager
 import android.util.Log
 import android.widget.Button
 import android.widget.Toast
+import android.widget.EditText
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.Callback
 
 class SystemOverlayService : Service() {
     private var overlayButton: View? = null
     private lateinit var windowManager: WindowManager
 
+    companion object {
+        var reactContext: ReactApplicationContext? = null
+        var cb: Callback? = null;
+    }
+
     override fun onCreate() {
         super.onCreate()
-
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+        showOverlayButton()
+        // return START_STICKY
+    }
+
+    private fun showOverlayButton(){
 
         // Inflate the overlay button
         val inflatedButton = LayoutInflater.from(this).inflate(R.layout.overlay_button, null)
@@ -52,6 +64,49 @@ class SystemOverlayService : Service() {
         button?.setOnClickListener {
             // Show a Toast when the overlay button is clicked
             Toast.makeText(applicationContext, "Overlay Button Clicked", Toast.LENGTH_SHORT).show()
+            showForm(windowManager)
+        }
+    }
+
+    private fun showForm(windowManager: WindowManager) {
+        // Inflate the form layout
+        val formView = LayoutInflater.from(this).inflate(R.layout.form_overlay, null)
+
+        // Set up LayoutParams for the form
+        val formParams = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            PixelFormat.TRANSLUCENT
+        )
+
+         // Remove FLAG_NOT_FOCUSABLE to make the form focusable
+        formParams.flags = formParams.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
+
+        // Add the form to the window
+        windowManager.addView(formView, formParams)
+
+        // Get references to form fields
+        val editText = formView.findViewById<EditText>(R.id.enterText)
+        val submitButton = formView.findViewById<Button>(R.id.submitButton)
+
+        // Handle form submission
+        submitButton.setOnClickListener {
+            val enteredText = editText.text.toString()
+            if (enteredText.isNotEmpty()) {
+                // Save the data to Notion (you can integrate this step later)
+                Toast.makeText(applicationContext, "Data submitted: $enteredText", Toast.   LENGTH_SHORT).show()
+                
+                reactContext?.let { context ->
+                    val systemOverlayModule = SystemOverlayModule(context)
+                    systemOverlayModule.sendDataToReactNative("onFormSubmit", enteredText)
+                }
+
+                windowManager.removeView(formView)  // Remove the form after submission
+            } else {
+                Toast.makeText(applicationContext, "Please enter some data", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

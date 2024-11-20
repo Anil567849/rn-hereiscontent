@@ -8,9 +8,15 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import android.util.Log
+import com.facebook.react.bridge.Callback
+import com.facebook.react.modules.core.DeviceEventManagerModule
 
 class SystemOverlayModule(private val reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
+
+    init {
+        SystemOverlayService.reactContext = reactContext
+    }
 
     override fun getName(): String {
         return "SystemOverlayModule" // This name is used in JavaScript
@@ -41,4 +47,13 @@ class SystemOverlayModule(private val reactContext: ReactApplicationContext) :
             promise.reject("ERROR_CHECKING_OVERLAY_PERMISSION", e)
         }
     }
+
+    @ReactMethod
+    fun sendDataToReactNative(eventName: String, params: String) {
+        Log.d("Debug", "Send to React Native: $params")
+        reactContext
+        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+        .emit(eventName, params)
+    }
+
 }

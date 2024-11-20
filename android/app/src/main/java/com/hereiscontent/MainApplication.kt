@@ -12,6 +12,7 @@ import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
 import com.hereiscontent.SystemOverlayModule;
+import android.content.Intent
 
 class MainApplication : Application(), ReactApplication {
 
@@ -42,5 +43,13 @@ class MainApplication : Application(), ReactApplication {
       // If you opted-in for the New Architecture, we load the native entry point for this app.
       load()
     }
+    // Start the SystemOverlayService
+    startSystemOverlayService()
   }
+
+  private fun startSystemOverlayService() {
+    val intent = Intent(this, SystemOverlayService::class.java)
+    startService(intent)
+  }
+
 }

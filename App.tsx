@@ -6,37 +6,29 @@
  */
 
 import React, { useEffect } from 'react';
-import type { PropsWithChildren } from 'react';
 import {
-  Button,
   SafeAreaView,
-  ScrollView,
   StatusBar,
   StyleSheet,
-  Text,
   useColorScheme,
-  View, Platform, Linking, NativeModules
+  Platform, 
+  Linking, 
+  NativeModules, 
+  DeviceEventEmitter
 } from 'react-native';
+
+const {SystemOverlayModule} = NativeModules;
 
 import {
   Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
 import { Client } from '@notionhq/client';
 import NotionForm from './pages/home/_components/Form';
-import { PermissionsAndroid } from 'react-native';
 
-// import {NOTION_API_KEY} from '@env';
+console.log('SystemOverlayModule:', SystemOverlayModule); 
 
 const notion = new Client({ auth: process.env.NOTION_API_KEY });
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
 
 const createNotionPage = async () => {
 
@@ -150,32 +142,6 @@ const submitToNotion = async () => {
   }
 };
 
-function Section({ children, title }: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
-
 const checkOverlayPermission = async () => {
   if (Platform.OS === 'android') {
     try {
@@ -192,6 +158,9 @@ const checkOverlayPermission = async () => {
   }
 };
 
+const handleFormSubmission = (formData: string) => {
+  console.log('Received from Kotlin:', formData);
+};
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
@@ -208,11 +177,21 @@ function App(): React.JSX.Element {
         Linking.openSettings();
       }else{
         console.log("permission is granted")
-        await NativeModules.SystemOverlayModule.startOverlayService();
+        await SystemOverlayModule.startOverlayService();
       }
     });
 
   }, [])
+
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener('onFormSubmit', (data) => {
+        handleFormSubmission(data);
+    });
+
+    return () => {
+        subscription.remove(); // Clean up the listener when the component unmounts
+    };
+  }, []);
 
   return (
     <SafeAreaView>
@@ -220,27 +199,7 @@ function App(): React.JSX.Element {
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
-        <NotionForm />
-      {/* <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <View>
-          <Text style={{ color: 'white' }}>Hello</Text>
-          <Button
-            onPress={createNotionPage}
-            title="Create a Page"
-            color="#841584"
-            accessibilityLabel="Learn more about this purple button"
-          />
-          <Text style={{ color: 'white' }}>Hello</Text>
-          <Button
-            onPress={submitToNotion}
-            title="add data"
-            color="#841584"
-            accessibilityLabel="Learn more about this purple button"
-          />
-        </View>
-      </ScrollView> */}
+      <NotionForm />
     </SafeAreaView>
   );
 }
