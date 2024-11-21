@@ -48,7 +48,6 @@ const checkOverlayPermission = async () => {
 
 const handleFormSubmission = async (data: any) => {
   const formData = JSON.parse(data);
-  console.log('Received Data:', formData);
 
   try {
     const response = await notion.pages.create({
@@ -68,11 +67,11 @@ const handleFormSubmission = async (data: any) => {
         URL: {
           url: formData.inputUrl,
         },
-        Category: {
+        Tags: {
           rich_text: [
             {
               text: {
-                content: formData.inputCategory,
+                content: formData.inputTags,
               },
             },
           ],
@@ -98,10 +97,8 @@ const handleFormSubmission = async (data: any) => {
       },
     });
     console.log('Success! Entry added:', response);
-  //   alert('Data submitted successfully!');
   } catch (error) {
     console.error('Error:', error);
-  //   alert('Error submitting data. Please try again.');
   }
 };
 

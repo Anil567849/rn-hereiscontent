@@ -14,7 +14,7 @@ import com.google.gson.Gson
 data class SubmittedData(
     val inputTitle: String,
     val inputUrl: String,
-    val inputCategory: String,
+    val inputTags: String,
     val inputDescription: String,
     val selectedPlatform: String
 )
@@ -57,8 +57,8 @@ class SystemOverlayModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun sendDataToReactNative(eventName: String, inputTitle: String, inputUrl: String, inputCategory: String, inputDescription: String, selectedPlatform: String) {
-        val submittedData = SubmittedData(inputTitle, inputUrl, inputCategory, inputDescription, selectedPlatform)
+    fun sendDataToReactNative(eventName: String, inputTitle: String, inputUrl: String, inputTags: String, inputDescription: String, selectedPlatform: String) {
+        val submittedData = SubmittedData(inputTitle, inputUrl, inputTags, inputDescription, selectedPlatform)
 
         val gson = Gson()
         val jsonData = gson.toJson(submittedData)

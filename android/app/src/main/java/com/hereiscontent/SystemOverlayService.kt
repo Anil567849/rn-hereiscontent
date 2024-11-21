@@ -150,7 +150,7 @@ class SystemOverlayService : Service() {
         // Get references to form fields
         val input_title = formView.findViewById<EditText>(R.id.input_title)
         val input_url = formView.findViewById<EditText>(R.id.input_url)
-        val input_category = formView.findViewById<EditText>(R.id.input_category)
+        val input_tags = formView.findViewById<EditText>(R.id.input_tags)  // Tags
         val input_description = formView.findViewById<EditText>(R.id.input_description)
         val platform_spinner = formView.findViewById<Spinner>(R.id.platform_spinner)
 
@@ -186,21 +186,21 @@ class SystemOverlayService : Service() {
         submitButton?.setOnClickListener {
             val inputTitle = input_title.text.toString();
             val inputUrl = input_url.text.toString();
-            val inputCategory = input_category.text.toString();
+            val inputTags = input_tags.text.toString(); // Tags
             val inputDescription = input_description.text.toString();
             
-            if (inputTitle.isNotEmpty()) {
+            if (inputUrl.isNotEmpty() && inputTags.isNotEmpty()) {
                 // Save the data to Notion (you can integrate this step later)
                 Toast.makeText(applicationContext, "Data submitted: $inputTitle", Toast.   LENGTH_SHORT).show()
 
                 reactContext?.let { context ->
                     val systemOverlayModule = SystemOverlayModule(context)
-                    systemOverlayModule.sendDataToReactNative("onFormSubmit", inputTitle, inputUrl, inputCategory, inputDescription, selectedPlatform)
+                    systemOverlayModule.sendDataToReactNative("onFormSubmit", inputTitle, inputUrl, inputTags, inputDescription, selectedPlatform)
                 }
 
                 windowManager.removeView(formView)  // Remove the form after submission
             } else {
-                Toast.makeText(applicationContext, "Please enter some data", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "Please enter url and tags", Toast.LENGTH_SHORT).show()
             }
         }
         closeButton?.setOnClickListener {
