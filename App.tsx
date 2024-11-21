@@ -26,22 +26,17 @@ import {
 import { Client } from '@notionhq/client';
 import WelcomeScreen from './pages/home/Home';
 
-console.log('SystemOverlayModule:', SystemOverlayModule); 
-
 const notion = new Client({ auth: process.env.NOTION_API_KEY });
 
 const checkOverlayPermission = async () => {
   if (Platform.OS === 'android') {
     try {
       const isGranted = await NativeModules.SystemOverlayModule.isOverlayPermissionGranted();
-      console.log('Overlay Permission Granted:', isGranted);
       return isGranted;
     } catch (error) {
-      console.error('Failed to check overlay permission:', error);
       return false;
     }
   } else {
-    console.warn('Overlay permission is not required on iOS');
     return false;
   }
 };
@@ -96,7 +91,6 @@ const handleFormSubmission = async (data: any) => {
         },
       },
     });
-    console.log('Success! Entry added:', response);
   } catch (error) {
     console.error('Error:', error);
   }
@@ -113,10 +107,8 @@ function App(): React.JSX.Element {
 
     checkOverlayPermission().then(async (granted) => {
       if (!granted) {
-        console.log('Overlay permission not granted. Prompting user to enable it.');
         Linking.openSettings();
       }else{
-        console.log("permission is granted")
         await SystemOverlayModule.startOverlayService();
       }
     });

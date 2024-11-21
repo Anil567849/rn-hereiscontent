@@ -32,7 +32,6 @@ class SystemOverlayModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun startOverlayService() {
-        Log.d("Called", "hello")
         if (Settings.canDrawOverlays(reactContext)) {
             // Permission granted, start the service
             val serviceIntent = Intent(reactContext, SystemOverlayService::class.java)
@@ -47,7 +46,6 @@ class SystemOverlayModule(private val reactContext: ReactApplicationContext) :
     @ReactMethod
     fun isOverlayPermissionGranted(promise: Promise) {
         try {
-            Log.d("Called", "hello 1")
             val context = reactApplicationContext
             val isGranted = Settings.canDrawOverlays(context)
             promise.resolve(isGranted) // Returns true if permission is granted

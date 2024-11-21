@@ -38,7 +38,6 @@ class SystemOverlayService : Service() {
     private val backgroundReceiver = object: BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             try {
-                Log.d("BroadcastReceiver", "Intent received: ${intent?.action}")
                 if (intent?.action == "com.hereiscontent.APP_IS_DESTROYED") {
                     hideOverlayButton()
                 }
@@ -57,7 +56,6 @@ class SystemOverlayService : Service() {
             val filter = IntentFilter("com.hereiscontent.APP_IS_DESTROYED")
             registerReceiver(backgroundReceiver, filter, Context.RECEIVER_EXPORTED)
             showOverlayButton()
-            Log.d("BroadcastReceiver", "Registered successfully")
         } catch (e: Exception) {
             Log.e("BroadcastReceiver", "Error while registering receiver: ${e.message}", e)
         }
@@ -67,7 +65,6 @@ class SystemOverlayService : Service() {
 
         // Inflate the overlay button
         val inflatedButton = LayoutInflater.from(this).inflate(R.layout.overlay_button, null)
-        Log.d("OverlayButton", "Is View Null? ${inflatedButton == null}")
 
         val displayMetrics = Resources.getSystem().displayMetrics
         val screenWidth = displayMetrics.widthPixels
@@ -101,8 +98,6 @@ class SystemOverlayService : Service() {
         val button = inflatedButton.findViewById<Button>(R.id.overlay_button)
 
         button?.setOnClickListener {
-            // Show a Toast when the overlay button is clicked
-            Toast.makeText(applicationContext, "Overlay Button Clicked", Toast.LENGTH_SHORT).show()
             showForm(windowManager)
         }
     }
@@ -168,7 +163,6 @@ class SystemOverlayService : Service() {
         platform_spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parentView: AdapterView<*>, view: View?, position: Int, id: Long) {
                 selectedPlatform = parentView.getItemAtPosition(position).toString()
-                Log.d("Selected Platform", selectedPlatform) // Log the selected platform to check the value
             }
         
             override fun onNothingSelected(parentView: AdapterView<*>) {
@@ -191,7 +185,7 @@ class SystemOverlayService : Service() {
             
             if (inputUrl.isNotEmpty() && inputTags.isNotEmpty()) {
                 // Save the data to Notion (you can integrate this step later)
-                Toast.makeText(applicationContext, "Data submitted: $inputTitle", Toast.   LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "Data submitted: $inputUrl", Toast.   LENGTH_SHORT).show()
 
                 reactContext?.let { context ->
                     val systemOverlayModule = SystemOverlayModule(context)
