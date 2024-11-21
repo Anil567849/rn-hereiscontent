@@ -10,6 +10,7 @@ import android.view.View
 import android.view.WindowManager
 import android.util.Log
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ScrollView
 import android.widget.Spinner
 import android.widget.Toast
@@ -25,6 +26,7 @@ import android.content.IntentFilter
 import android.content.Context
 import android.view.Gravity
 import android.content.res.Resources
+import android.content.ClipboardManager
 
 class SystemOverlayService : Service() {
     private var overlayButton: View? = null
@@ -133,6 +135,7 @@ class SystemOverlayService : Service() {
 
         // Add the form to the window
         windowManager.addView(formView, formParams)
+        formViewRef = formView
 
         val scrollView = formView.findViewById<ScrollView>(R.id.scrollView)
         val displayMetrics = resources.displayMetrics
@@ -141,13 +144,25 @@ class SystemOverlayService : Service() {
         layoutParams.height = screenHeight / 2
         scrollView.layoutParams = layoutParams
 
-
         // Get references to form fields
         val input_title = formView.findViewById<EditText>(R.id.input_title)
         val input_url = formView.findViewById<EditText>(R.id.input_url)
         val input_tags = formView.findViewById<EditText>(R.id.input_tags)  // Tags
         val input_description = formView.findViewById<EditText>(R.id.input_description)
         val platform_spinner = formView.findViewById<Spinner>(R.id.platform_spinner)
+
+        // Handle Paste Button 
+        val pasteButton = formViewRef?.findViewById<ImageButton>(R.id.paste_button)
+
+        pasteButton?.setOnClickListener {
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clipData = clipboard.primaryClip
+            if (clipData != null && clipData.itemCount > 0) {
+                input_url.setText(clipData.getItemAt(0).text.toString())
+            } else {
+                Toast.makeText(this, "Clipboard is empty", Toast.LENGTH_SHORT).show()
+            }
+        }
 
         // Define the options to display in the Spinner
         val platforms = arrayOf("YouTube", "Instagram", "LinkedIn", "Facebook", "X", "TikTok", "Reddit")
@@ -174,8 +189,6 @@ class SystemOverlayService : Service() {
         val submitButton = formView.findViewById<Button>(R.id.submit_button)
         val closeButton = formView.findViewById<Button>(R.id.close_button)
 
-        formViewRef = formView
-
         // Handle form submission
         submitButton?.setOnClickListener {
             val inputTitle = input_title.text.toString();
@@ -197,6 +210,7 @@ class SystemOverlayService : Service() {
                 Toast.makeText(applicationContext, "Please enter url and tags", Toast.LENGTH_SHORT).show()
             }
         }
+
         closeButton?.setOnClickListener {
             windowManager.removeView(formView)
         }
