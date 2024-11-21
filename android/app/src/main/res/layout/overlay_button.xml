@@ -5,10 +5,10 @@
 
     <Button
         android:id="@+id/overlay_button"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:text="+"
         android:textColor="@android:color/white"
         android:background="#0000FF"
-        android:textSize="24sp"/>
+        android:textSize="18sp"/>
 </FrameLayout>

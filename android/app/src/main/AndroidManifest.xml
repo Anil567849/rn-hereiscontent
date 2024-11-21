@@ -2,6 +2,9 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
 
     <application
       android:name=".MainApplication"
@@ -13,7 +16,11 @@
       android:supportsRtl="true">
       <service
         android:name=".SystemOverlayService"
-        android:permission="android.permission.SYSTEM_ALERT_WINDOW">
+        android:permission="android.permission.SYSTEM_ALERT_WINDOW"
+        android:exported="false">
+            <intent-filter>
+                <action android:name="com.hereiscontent.APP_IS_DESTROYED"/>
+            </intent-filter>
       </service>
       <activity
         android:name=".MainActivity"

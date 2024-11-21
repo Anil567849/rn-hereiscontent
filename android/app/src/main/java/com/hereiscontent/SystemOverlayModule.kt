@@ -1,6 +1,5 @@
 package com.hereiscontent
 
-
 import android.provider.Settings
 import android.content.Intent
 import com.facebook.react.bridge.Promise
@@ -11,6 +10,14 @@ import android.util.Log
 import com.facebook.react.bridge.Callback
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.google.gson.Gson
+
+data class SubmittedData(
+    val inputTitle: String,
+    val inputUrl: String,
+    val inputCategory: String,
+    val inputDescription: String,
+    val selectedPlatform: String
+)
 
 class SystemOverlayModule(private val reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {

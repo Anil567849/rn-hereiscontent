@@ -10,34 +10,57 @@ import android.view.View
 import android.view.WindowManager
 import android.util.Log
 import android.widget.Button
+import android.widget.ScrollView
 import android.widget.Spinner
 import android.widget.Toast
 import android.widget.EditText
 import com.facebook.react.bridge.ReactApplicationContext
 import android.widget.ArrayAdapter
 import android.widget.AdapterView
-
-data class SubmittedData(
-    val inputTitle: String,
-    val inputUrl: String,
-    val inputCategory: String,
-    val inputDescription: String,
-    val selectedPlatform: String
-)
+import android.app.Activity
+import android.app.Application
+import android.os.Bundle
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
+import android.content.Context
+import android.view.Gravity
+import android.content.res.Resources
 
 class SystemOverlayService : Service() {
     private var overlayButton: View? = null
+    private var formViewRef: View? = null
     private lateinit var windowManager: WindowManager
 
     companion object {
         var reactContext: ReactApplicationContext? = null
     }
 
+    private val backgroundReceiver = object: BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            try {
+                Log.d("BroadcastReceiver", "Intent received: ${intent?.action}")
+                if (intent?.action == "com.hereiscontent.APP_IS_DESTROYED") {
+                    hideOverlayButton()
+                }
+            } catch (e: Exception) {
+                Log.e("BroadcastReceiver", "Error in onReceive: ${e.message}", e)
+            }
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
-        showOverlayButton()
-        // return START_STICKY
+
+        // Register the receiver for background/foreground state changes
+        try {          
+            val filter = IntentFilter("com.hereiscontent.APP_IS_DESTROYED")
+            registerReceiver(backgroundReceiver, filter, Context.RECEIVER_EXPORTED)
+            showOverlayButton()
+            Log.d("BroadcastReceiver", "Registered successfully")
+        } catch (e: Exception) {
+            Log.e("BroadcastReceiver", "Error while registering receiver: ${e.message}", e)
+        }
     }
 
     private fun showOverlayButton(){
@@ -46,20 +69,26 @@ class SystemOverlayService : Service() {
         val inflatedButton = LayoutInflater.from(this).inflate(R.layout.overlay_button, null)
         Log.d("OverlayButton", "Is View Null? ${inflatedButton == null}")
 
+        val displayMetrics = Resources.getSystem().displayMetrics
+        val screenWidth = displayMetrics.widthPixels
+        val screenHeight = displayMetrics.heightPixels
+        
         val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-            } else {
-                @Suppress("DEPRECATION")
-                WindowManager.LayoutParams.TYPE_PHONE
-            },
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            WindowManager.LayoutParams.WRAP_CONTENT, 
+            WindowManager.LayoutParams.WRAP_CONTENT, 
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { 
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY 
+            } else { 
+                @Suppress("DEPRECATION") 
+                WindowManager.LayoutParams.TYPE_PHONE 
+            }, 
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, 
             PixelFormat.TRANSLUCENT
-        ).apply {
-            x = 10
-            y = 10
+        ).apply { 
+            // Position the button at the center right
+            x = screenWidth - width - 50  // 50 is a padding from the right edge
+            y = (screenHeight - height) / 2  // Center vertically
+            gravity = Gravity.TOP or Gravity.START  // Important for positioning
         }
 
         // Add the overlay to the window
@@ -70,6 +99,7 @@ class SystemOverlayService : Service() {
 
         // Set up the click listener for the button
         val button = inflatedButton.findViewById<Button>(R.id.overlay_button)
+
         button?.setOnClickListener {
             // Show a Toast when the overlay button is clicked
             Toast.makeText(applicationContext, "Overlay Button Clicked", Toast.LENGTH_SHORT).show()
@@ -77,7 +107,20 @@ class SystemOverlayService : Service() {
         }
     }
 
+    private fun hideOverlayButton() {
+        overlayButton?.let {
+            windowManager.removeView(it) // Remove overlay button when app is destroyed or in background
+            overlayButton = null // Clear reference
+        }
+
+        formViewRef?.let { view ->
+            windowManager.removeView(view)
+            formViewRef = null
+        }
+    }
+
     private fun showForm(windowManager: WindowManager) {
+
         // Inflate the form layout
         val formView = LayoutInflater.from(this).inflate(R.layout.form_overlay, null)
 
@@ -90,11 +133,19 @@ class SystemOverlayService : Service() {
             PixelFormat.TRANSLUCENT
         )
 
-         // Remove FLAG_NOT_FOCUSABLE to make the form focusable
+         // Remove FLAG_NOT_FOCUSABLE to make the form focusable - So i can see keyboard
         formParams.flags = formParams.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
 
         // Add the form to the window
         windowManager.addView(formView, formParams)
+
+        val scrollView = formView.findViewById<ScrollView>(R.id.scrollView)
+        val displayMetrics = resources.displayMetrics
+        val screenHeight = displayMetrics.heightPixels
+        val layoutParams = scrollView.layoutParams
+        layoutParams.height = screenHeight / 2
+        scrollView.layoutParams = layoutParams
+
 
         // Get references to form fields
         val input_title = formView.findViewById<EditText>(R.id.input_title)
@@ -127,9 +178,12 @@ class SystemOverlayService : Service() {
         }
 
         val submitButton = formView.findViewById<Button>(R.id.submit_button)
+        val closeButton = formView.findViewById<Button>(R.id.close_button)
+
+        formViewRef = formView
 
         // Handle form submission
-        submitButton.setOnClickListener {
+        submitButton?.setOnClickListener {
             val inputTitle = input_title.text.toString();
             val inputUrl = input_url.text.toString();
             val inputCategory = input_category.text.toString();
@@ -149,6 +203,9 @@ class SystemOverlayService : Service() {
                 Toast.makeText(applicationContext, "Please enter some data", Toast.LENGTH_SHORT).show()
             }
         }
+        closeButton?.setOnClickListener {
+            windowManager.removeView(formView)
+        }
     }
 
     override fun onDestroy() {
@@ -156,6 +213,10 @@ class SystemOverlayService : Service() {
         overlayButton?.let { view ->
             windowManager.removeView(view)
         }
+        formViewRef?.let { view ->
+            windowManager.removeView(view)
+        }
+        unregisterReceiver(backgroundReceiver)
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
