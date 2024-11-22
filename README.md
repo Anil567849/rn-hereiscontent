@@ -61,3 +61,7 @@ Goto you IDE and open our source code
 Create .env file in you root directory
 Paste your notion api key and database IDE
 Check .env which keys to use
+
+## App Flow
+<img width="963" alt="Screenshot 2024-11-22 at 9 20 37 PM" src="https://github.com/user-attachments/assets/b83c2697-cff5-4f99-b4d7-725e841d40ad">
+
