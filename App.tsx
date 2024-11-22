@@ -14,7 +14,9 @@ import {
   Platform, 
   Linking, 
   NativeModules, 
-  DeviceEventEmitter
+  DeviceEventEmitter,
+  ToastAndroid,
+  Alert
 } from 'react-native';
 
 const {SystemOverlayModule} = NativeModules;
@@ -91,7 +93,14 @@ const handleFormSubmission = async (data: any) => {
         },
       },
     });
+
+    if (response.id) { // If the response contains an `id`, it means the page was successfully created
+      ToastAndroid.show('Saved in database', ToastAndroid.SHORT);
+    } else {
+      ToastAndroid.show('Not able to save in database', ToastAndroid.SHORT);
+    }
   } catch (error) {
+    ToastAndroid.show('Error saving to database', ToastAndroid.SHORT);
     console.error('Error:', error);
   }
 };
@@ -103,17 +112,45 @@ function App(): React.JSX.Element {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  useEffect(() => {
+  function startApp() {
+    Linking.openSettings().then(() => {
+      // Add a slight delay to ensure the permission change is recognized
+      setTimeout(async () => {
+        const granted = await checkOverlayPermission();
+        if (!granted) {
+          ToastAndroid.show('Please Enable Overlay Permission', ToastAndroid.SHORT);
+        } else {
+          ToastAndroid.show('Got Overlay Permission', ToastAndroid.SHORT);
+          await SystemOverlayModule.startOverlayService();
+        }
+      }, 1000);
+    });
+  }
 
+  useEffect(() => {
     checkOverlayPermission().then(async (granted) => {
-      if (!granted) {
-        Linking.openSettings();
-      }else{
+      if (granted) {
         await SystemOverlayModule.startOverlayService();
+      } else {
+        Alert.alert(
+          'Permission Needed',
+          'Please Enable Overlay Permission',
+          [
+            {
+              text: 'Cancel',
+              onPress: () => ToastAndroid.show('Overlay Permission Denied', ToastAndroid.SHORT),
+              style: 'cancel',
+            },
+            {
+              text: 'OK',
+              onPress: () => startApp(),
+            },
+          ],
+          { cancelable: false }
+        );
       }
     });
-
-  }, [])
+  }, []);
 
   useEffect(() => {
     const subscription = DeviceEventEmitter.addListener('onFormSubmit', (data) => {
