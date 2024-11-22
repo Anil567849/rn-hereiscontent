@@ -49,7 +49,7 @@ const handleFormSubmission = async (data: any) => {
   try {
     const response = await notion.pages.create({
       parent: {
-        database_id: '141ecc71627e80b5a472d0200ee150e9',
+        database_id: process.env.NOTION_DB_ID as string,
       },
       properties: {
         Title: {
