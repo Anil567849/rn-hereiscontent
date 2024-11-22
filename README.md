@@ -1,5 +1,5 @@
 # Here is Content
-### This is an app to help people to save the important content as you move through the different apps every single days. For eg: you might scroll through Instagram, TikTok, and Reddit every single day and stumble on some amazing content which might help you, Instead saving those content in particular app, you can use this app to save all the content in one place that is you notion's database directly through our application.
+### This is an app to help people to save the important content as they move through the different apps every single day. For eg: you might scroll through Instagram, TikTok, and Reddit every single day and stumble upon some amazing content that might help you, Instead saving those content in particular app, you can use this app to save all the content in one place that is you notion's database directly through our application.
 
 
 ## Important Commands
